@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
+
 DATABASE_URL = os.getenv("DB_URI")
 
 engine = create_engine(DATABASE_URL)

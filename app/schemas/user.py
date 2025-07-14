@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, field_validator
+from app.models.User import RoleEnum
 
 class CreateUser(BaseModel):
     username: str
@@ -6,6 +7,7 @@ class CreateUser(BaseModel):
     last_name: str | None = None
     email: EmailStr
     password: str
+    role: RoleEnum
 
     @field_validator('username')
     def validate_user(cls, v):
@@ -24,3 +26,4 @@ class UserOut(BaseModel):
     first_name: str
     last_name: str | None = None
     email: EmailStr
+    role: RoleEnum
