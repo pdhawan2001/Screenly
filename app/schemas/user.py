@@ -41,5 +41,5 @@ class UserOut(BaseModel):
     role: RoleEnum
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    username_or_email: Union[str, EmailStr]  # Accepts either username or email
     password: str

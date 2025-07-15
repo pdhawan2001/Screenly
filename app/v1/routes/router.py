@@ -87,10 +87,17 @@ async def register_hr(user: CreateHR, db: Session = Depends(get_db)):
 
     return new_user
 
+
 @router.post("/login", status_code=201)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == request.email).first()
-    if not user or not bcrypt.checkpw(request.password.encode('utf-8'), user.hashed_password.encode('utf-8')):
+    is_email = "@" in request.username_or_email
+    if is_email:
+        user = db.query(User).filter(User.email == request.username_or_email).first()
+    else:
+        user = db.query(User).filter(User.username == request.username_or_email).first()
+    if not user or not bcrypt.checkpw(
+        request.password.encode("utf-8"), user.hashed_password.encode("utf-8")
+    ):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     # You can include more user info in the token if needed
     access_token = create_access_token(data={"sub": user.email, "role": user.role})
