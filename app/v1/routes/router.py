@@ -2,7 +2,8 @@ import bcrypt
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.models.User import User
-from app.schemas.user import CreateCandidate, CreateHR, UserOut
+from app.schemas.user import CreateCandidate, CreateHR, UserOut, LoginRequest
+from app.core.auth import create_access_token
 from app.database import get_db
 
 router = APIRouter()
@@ -85,3 +86,12 @@ async def register_hr(user: CreateHR, db: Session = Depends(get_db)):
     db.refresh(new_user)
 
     return new_user
+
+@router.post("/login", status_code=201)
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == request.email).first()
+    if not user or not bcrypt.checkpw(request.password.encode('utf-8'), user.hashed_password.encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    # You can include more user info in the token if needed
+    access_token = create_access_token(data={"sub": user.email, "role": user.role})
+    return {"access_token": access_token, "token_type": "bearer"}

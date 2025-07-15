@@ -39,3 +39,7 @@ class UserOut(BaseModel):
     last_name: str | None = None
     email: EmailStr
     role: RoleEnum
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
