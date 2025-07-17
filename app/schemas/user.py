@@ -1,29 +1,37 @@
 from enum import Enum
 from pydantic import BaseModel, EmailStr, field_validator
+from datetime import datetime
+from typing import Union
+
 class RoleEnum(str, Enum):
     candidate = "Candidate"
     hr = "HR"
+
+
 class CreateUserBase(BaseModel):
     username: str
-    first_name: str 
+    first_name: str
     last_name: str | None = None
     email: EmailStr
     password: str
 
-    @field_validator('username')
+    @field_validator("username")
     def validate_user(cls, v):
         if len(v) < 3:
-            raise ValueError('Username must be at least 3 characters long')
+            raise ValueError("Username must be at least 3 characters long")
         return v
-    
-    @field_validator('password')
-    def validate_password(cls, v): 
+
+    @field_validator("password")
+    def validate_password(cls, v):
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise ValueError("Password must be at least 8 characters long")
         return v
-    
+
+
 class CreateCandidate(CreateUserBase):
     pass
+
+
 class CreateHR(CreateUserBase):
     company_name: str
     position: str
@@ -33,12 +41,16 @@ class CreateHR(CreateUserBase):
     city: str
     country: str
 
+
 class UserOut(BaseModel):
     username: str
     first_name: str
     last_name: str | None = None
     email: EmailStr
     role: RoleEnum
+    email_verified: bool
+    created_at: datetime
+
 
 class LoginRequest(BaseModel):
     username_or_email: Union[str, EmailStr]  # Accepts either username or email

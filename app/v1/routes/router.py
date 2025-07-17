@@ -5,6 +5,8 @@ from app.models.User import User
 from app.schemas.user import CreateCandidate, CreateHR, UserOut, LoginRequest
 from app.core.auth import create_access_token
 from app.database import get_db
+from datetime import datetime, timezone
+
 
 router = APIRouter()
 
@@ -14,7 +16,7 @@ def health_check():
     return {"status": "ok"}
 
 
-@router.post("/registerUser", status_code=201, response_model=UserOut)
+@router.post("/register/Candidate", status_code=201, response_model=UserOut)
 async def register_user(user: CreateCandidate, db: Session = Depends(get_db)):
     existing_user = (
         db.query(User)
@@ -38,6 +40,8 @@ async def register_user(user: CreateCandidate, db: Session = Depends(get_db)):
         email=user.email,
         hashed_password=hashed_password,
         role="Candidate",
+        created_at=datetime.now(timezone.utc),
+        email_verified=False,
     )
 
     db.add(new_user)
@@ -48,7 +52,7 @@ async def register_user(user: CreateCandidate, db: Session = Depends(get_db)):
     return new_user
 
 
-@router.post("/registerHR", status_code=201, response_model=UserOut)
+@router.post("/register/HR", status_code=201, response_model=UserOut)
 async def register_hr(user: CreateHR, db: Session = Depends(get_db)):
     existing_user = (
         db.query(User)
@@ -72,6 +76,8 @@ async def register_hr(user: CreateHR, db: Session = Depends(get_db)):
         email=user.email,
         hashed_password=hashed_password,
         role="HR",
+        created_at=user.created_at,
+        email_verified=user.email_verified,
         company_name=user.company_name,
         position=user.position,
         street_number=user.street_number,
