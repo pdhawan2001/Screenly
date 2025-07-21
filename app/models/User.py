@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, func
 from app.database import Base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -27,3 +28,5 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"
+
+jobs = relationship("Job", back_populates="hr")

@@ -3,6 +3,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime
 from typing import Union
 
+
 class RoleEnum(str, Enum):
     candidate = "Candidate"
     hr = "HR"
@@ -50,6 +51,9 @@ class UserOut(BaseModel):
     role: RoleEnum
     email_verified: bool
     created_at: datetime
+
+    class Config:
+        orm_mode = True
 
 
 class LoginRequest(BaseModel):
