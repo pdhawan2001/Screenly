@@ -2,15 +2,21 @@ import bcrypt
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.models.User import User
-from app.models.Jobs import Job
+# Job model now handled in HR routes
 from app.schemas.user import CreateCandidate, CreateHR, UserOut, LoginRequest
-from app.schemas.job import JobCreate, JobOut
-from app.core.auth import create_access_token
+# Job schemas now handled in HR routes
+from app.core.auth import create_access_token, get_current_user
 from app.database import get_db
 from datetime import datetime, timezone
+from .candidate_routes import router as candidate_router
+from .hr_routes import router as hr_router
 
 
 router = APIRouter()
+
+# Include sub-routers
+router.include_router(candidate_router)
+router.include_router(hr_router)
 
 
 @router.get("/")
@@ -111,35 +117,4 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": user.email, "role": user.role})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/jobs/create", response_model=JobOut)
-def create_job(
-    job: JobCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    # Only HRs can create jobs
-    if current_user.role != "HR":
-        raise HTTPException(status_code=403, detail="Only HRs can create jobs.")
-
-    # Convert skills_required list to comma-separated string for storage
-    skills_str = ",".join(job.skills_required)
-
-    new_job = Job(
-        title=job.title,
-        description=job.description,
-        street_number=job.street_number,
-        street_name=job.street_name,
-        city=job.city,
-        country=job.country,
-        zip_code=job.zip_code,
-        skills_required=skills_str,
-        is_active=job.is_active,
-        created_by=current_user.id,
-        company_name=current_user.company_name,
-    )
-    db.add(new_job)
-    db.commit()
-    db.refresh(new_job)
-    # Convert skills back to list for output
-    new_job.skills_required = new_job.skills_required.split(",")
-    return new_job
+# Job management endpoints have been moved to /hr/jobs

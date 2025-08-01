@@ -20,3 +20,4 @@ class Job(Base):
     company_name = Column(String)
 
     hr = relationship("User", back_populates="jobs")
+    applications = relationship("CandidateApplication", back_populates="job")

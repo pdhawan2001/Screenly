@@ -29,4 +29,4 @@ class User(Base):
     def __repr__(self):
         return f"<User(id={self.id}, username={self.username}, email={self.email})>"
 
-jobs = relationship("Job", back_populates="hr")
+    jobs = relationship("Job", back_populates="hr")
