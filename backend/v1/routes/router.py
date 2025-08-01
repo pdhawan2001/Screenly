@@ -1,12 +1,12 @@
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.models.User import User
+from backend.models.User import User
 # Job model now handled in HR routes
-from app.schemas.user import CreateCandidate, CreateHR, UserOut, LoginRequest
+from backend.schemas.user import CreateCandidate, CreateHR, UserOut, LoginRequest
 # Job schemas now handled in HR routes
-from app.core.auth import create_access_token, get_current_user
-from app.database import get_db
+from backend.core.auth import create_access_token, get_current_user
+from backend.database import get_db
 from datetime import datetime, timezone
 from .candidate_routes import router as candidate_router
 from .hr_routes import router as hr_router

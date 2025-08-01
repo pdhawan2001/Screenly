@@ -6,22 +6,22 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
-from app.models.User import User
-from app.models.Jobs import Job
-from app.models.CandidateApplication import CandidateApplication
-from app.models.CandidateEvaluation import CandidateEvaluation
-from app.models.JobProfile import JobProfile
-from app.schemas.candidate_application import (
+from backend.models.User import User
+from backend.models.Jobs import Job
+from backend.models.CandidateApplication import CandidateApplication
+from backend.models.CandidateEvaluation import CandidateEvaluation
+from backend.models.JobProfile import JobProfile
+from backend.schemas.candidate_application import (
     CandidateApplicationCreate, CandidateApplicationOut, 
     CandidateApplicationList, CandidateApplicationUpdate
 )
-from app.schemas.candidate_evaluation import (
+from backend.schemas.candidate_evaluation import (
     CandidateEvaluationOut, CandidateEvaluationCreate, HRReviewRequest
 )
-from app.core.auth import get_current_user
-from app.database import get_db
-from app.services.ai_service import ai_service
-from app.services.google_sheets_service import google_sheets_service
+from backend.core.auth import get_current_user
+from backend.database import get_db
+from backend.services.ai_service import ai_service
+from backend.services.google_sheets_service import google_sheets_service
 
 router = APIRouter(prefix="/candidates", tags=["candidates"])
 
