@@ -1,6 +1,6 @@
 # Screenly - HR Screening System Setup Guide
 
-This guide will help you set up your HR screening system based on the n8n workflow you shared.
+This guide will help you set up your HR screening system.
 
 ## System Overview
 
@@ -27,9 +27,8 @@ JWT_KEY=your-super-secret-jwt-key-here
 ALGORITHM=HS256
 TOKEN_EXPIRE_MINUTES=30
 
-# AI Services (choose one or both)
+# AI Services - OpenAI (REQUIRED)
 OPENAI_API_KEY=your-openai-api-key-here
-GEMINI_API_KEY=your-gemini-api-key-here
 
 # Google Sheets Integration
 GOOGLE_SERVICE_ACCOUNT_JSON=/path/to/service-account.json
@@ -63,14 +62,27 @@ The system will automatically create headers:
 DATA | NAME | PHONE | CITY | EMAIL | Birthdate | EDUCATIONAL | JOB HISTORY | SKILLS | SUMMARIZE | VOTE | CONSIDERATION
 ```
 
-### 3. Install Dependencies
+### 3. AI Service Setup
+
+**Important:** This system uses **OpenAI only**. Make sure you have:
+- An OpenAI API account at https://platform.openai.com/
+- Generated API key with appropriate credits
+- Added the API key to your `.env` file
+
+The system will automatically use GPT-3.5-turbo for:
+- CV text extraction and analysis
+- Personal data extraction
+- Qualifications analysis  
+- Candidate evaluation and scoring
+
+### 4. Install Dependencies
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-### 4. Database Setup
+### 5. Database Setup
 
 ```bash
 # Create PostgreSQL database
@@ -79,12 +91,14 @@ createdb screenly_db
 # The models will auto-create tables when you start the server
 ```
 
-### 5. Start the Server
+### 6. Start the Server
 
 ```bash
 cd backend
 uvicorn main:app --reload
 ```
+
+**Note:** The server will fail to start if `OPENAI_API_KEY` is not set in your environment variables.
 
 ## API Endpoints
 

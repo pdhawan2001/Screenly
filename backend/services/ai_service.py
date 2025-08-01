@@ -1,31 +1,29 @@
 import os
 import asyncio
 from typing import Dict, Optional, Tuple
+from dotenv import load_dotenv
 import openai
-import google.generativeai as genai
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
 import PyPDF2
 import pdfplumber
 from io import BytesIO
+import json
+
+load_dotenv()
 
 class AIService:
     def __init__(self):
         self.openai_client = None
-        self.gemini_model = None
-        self.setup_ai_clients()
+        self.setup_openai_client()
     
-    def setup_ai_clients(self):
-        """Initialize AI clients based on available API keys"""
+    def setup_openai_client(self):
+        """Initialize OpenAI client"""
         openai_key = os.getenv("OPENAI_API_KEY")
-        gemini_key = os.getenv("GEMINI_API_KEY")
         
-        if openai_key:
-            self.openai_client = openai.OpenAI(api_key=openai_key)
+        if not openai_key:
+            raise Exception("OPENAI_API_KEY environment variable is required")
         
-        if gemini_key:
-            genai.configure(api_key=gemini_key)
-            self.gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+        self.openai_client = openai.OpenAI(api_key=openai_key)
+        print("OpenAI client initialized successfully")
     
     async def extract_text_from_pdf(self, file_content: bytes, filename: str) -> str:
         """Extract text from PDF file content, similar to n8n Extract from File node"""
@@ -73,15 +71,10 @@ class AIService:
         """
         
         try:
-            if self.gemini_model:
-                response = await self._call_gemini(f"{prompt}\n\nCV Text:\n{cv_text}")
-            elif self.openai_client:
-                response = await self._call_openai(f"{prompt}\n\nCV Text:\n{cv_text}")
-            else:
-                raise Exception("No AI service available")
+            if not self.openai_client:
+                raise Exception("OpenAI client not initialized")
             
-            # Parse the response to extract structured data
-            # This is a simplified version - you might want to use a proper JSON parser
+            response = await self._call_openai(f"{prompt}\n\nCV Text:\n{cv_text}")
             return self._parse_personal_data_response(response)
         except Exception as e:
             print(f"Error extracting personal data: {e}")
@@ -103,13 +96,10 @@ class AIService:
         """
         
         try:
-            if self.gemini_model:
-                response = await self._call_gemini(f"{prompt}\n\nCV Text:\n{cv_text}")
-            elif self.openai_client:
-                response = await self._call_openai(f"{prompt}\n\nCV Text:\n{cv_text}")
-            else:
-                raise Exception("No AI service available")
+            if not self.openai_client:
+                raise Exception("OpenAI client not initialized")
             
+            response = await self._call_openai(f"{prompt}\n\nCV Text:\n{cv_text}")
             return self._parse_qualifications_response(response)
         except Exception as e:
             print(f"Error extracting qualifications: {e}")
@@ -134,12 +124,10 @@ class AIService:
         """
         
         try:
-            if self.gemini_model:
-                return await self._call_gemini(prompt)
-            elif self.openai_client:
-                return await self._call_openai(prompt)
-            else:
-                raise Exception("No AI service available")
+            if not self.openai_client:
+                raise Exception("OpenAI client not initialized")
+            
+            return await self._call_openai(prompt)
         except Exception as e:
             print(f"Error generating summary: {e}")
             return "Unable to generate summary"
@@ -163,14 +151,10 @@ class AIService:
         """
         
         try:
-            if self.gemini_model:
-                response = await self._call_gemini(prompt)
-            elif self.openai_client:
-                response = await self._call_openai(prompt)
-            else:
-                raise Exception("No AI service available")
+            if not self.openai_client:
+                raise Exception("OpenAI client not initialized")
             
-            # Parse the response to extract score and consideration
+            response = await self._call_openai(prompt)
             result = self._parse_evaluation_response(response)
             return result.get('vote', 0.0), result.get('consideration', 'Unable to evaluate')
         except Exception as e:
@@ -178,51 +162,62 @@ class AIService:
             return 0.0, f"Evaluation failed: {str(e)}"
     
     async def _call_openai(self, prompt: str) -> str:
-        """Call OpenAI API"""
-        response = await asyncio.to_thread(
-            self.openai_client.chat.completions.create,
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=1000
-        )
-        return response.choices[0].message.content
-    
-    async def _call_gemini(self, prompt: str) -> str:
-        """Call Gemini API"""
-        response = await asyncio.to_thread(
-            self.gemini_model.generate_content,
-            prompt
-        )
-        return response.text
+        """Call OpenAI API with structured output when possible"""
+        try:
+            response = await asyncio.to_thread(
+                self.openai_client.chat.completions.create,
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful AI assistant that provides accurate information extraction and analysis."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=1500,
+                temperature=0.3
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"OpenAI API error: {e}")
+            raise e
     
     def _parse_personal_data_response(self, response: str) -> Dict[str, Optional[str]]:
         """Parse AI response for personal data extraction"""
-        # Simple parsing - in production, use a proper JSON parser
-        import json
         try:
-            # Try to find JSON in the response
+            # Try to find and parse JSON in the response
             start = response.find('{')
             end = response.rfind('}') + 1
             if start != -1 and end != 0:
                 json_str = response[start:end]
-                return json.loads(json_str)
-        except:
-            pass
+                data = json.loads(json_str)
+                return {
+                    "telephone": data.get("telephone"),
+                    "city": data.get("city"), 
+                    "birthdate": data.get("birthdate")
+                }
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error in personal data: {e}")
+        except Exception as e:
+            print(f"Error parsing personal data response: {e}")
         
         # Fallback to default values
         return {"telephone": None, "city": None, "birthdate": None}
     
     def _parse_qualifications_response(self, response: str) -> Dict[str, Optional[str]]:
         """Parse AI response for qualifications extraction"""
-        import json
         try:
             start = response.find('{')
             end = response.rfind('}') + 1
             if start != -1 and end != 0:
                 json_str = response[start:end]
-                return json.loads(json_str)
-        except:
-            pass
+                data = json.loads(json_str)
+                return {
+                    "Educational qualification": data.get("Educational qualification"),
+                    "Job History": data.get("Job History"),
+                    "Skills": data.get("Skills")
+                }
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error in qualifications: {e}")
+        except Exception as e:
+            print(f"Error parsing qualifications response: {e}")
         
         return {
             "Educational qualification": None,
@@ -232,19 +227,21 @@ class AIService:
     
     def _parse_evaluation_response(self, response: str) -> Dict:
         """Parse AI response for candidate evaluation"""
-        import json
         try:
             start = response.find('{')
             end = response.rfind('}') + 1
             if start != -1 and end != 0:
                 json_str = response[start:end]
                 result = json.loads(json_str)
-                # Ensure vote is a float
+                # Ensure vote is a float and within valid range
                 if 'vote' in result:
-                    result['vote'] = float(result['vote'])
+                    vote = float(result['vote'])
+                    result['vote'] = max(1.0, min(10.0, vote))  # Clamp between 1-10
                 return result
-        except:
-            pass
+        except json.JSONDecodeError as e:
+            print(f"JSON parse error in evaluation: {e}")
+        except Exception as e:
+            print(f"Error parsing evaluation response: {e}")
         
         return {"vote": 0.0, "consideration": "Unable to parse evaluation"}
 
