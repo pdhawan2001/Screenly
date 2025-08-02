@@ -27,8 +27,8 @@ JWT_KEY=your-super-secret-jwt-key-here
 ALGORITHM=HS256
 TOKEN_EXPIRE_MINUTES=30
 
-# AI Services - OpenAI (REQUIRED)
-OPENAI_API_KEY=your-openai-api-key-here
+# AI Services - Google Gemini (REQUIRED)
+GEMINI_API_KEY=your-gemini-api-key-here
 
 # Google Sheets Integration
 GOOGLE_SERVICE_ACCOUNT_JSON=/path/to/service-account.json
@@ -64,12 +64,12 @@ DATA | NAME | PHONE | CITY | EMAIL | Birthdate | EDUCATIONAL | JOB HISTORY | SKI
 
 ### 3. AI Service Setup
 
-**Important:** This system uses **OpenAI only**. Make sure you have:
-- An OpenAI API account at https://platform.openai.com/
-- Generated API key with appropriate credits
+**Important:** This system uses **Google Gemini only**. Make sure you have:
+- A Google AI Studio account at https://aistudio.google.com/
+- Generated API key with appropriate quotas
 - Added the API key to your `.env` file
 
-The system will automatically use GPT-3.5-turbo for:
+The system will automatically use Gemini 1.5 Flash for:
 - CV text extraction and analysis
 - Personal data extraction
 - Qualifications analysis  
@@ -98,7 +98,7 @@ cd backend
 uvicorn main:app --reload
 ```
 
-**Note:** The server will fail to start if `OPENAI_API_KEY` is not set in your environment variables.
+**Note:** The server will fail to start if `GEMINI_API_KEY` is not set in your environment variables.
 
 ## API Endpoints
 

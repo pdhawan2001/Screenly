@@ -2,28 +2,29 @@ import os
 import asyncio
 from typing import Dict, Optional, Tuple
 from dotenv import load_dotenv
-import openai
+import google.generativeai as genai
 import PyPDF2
 import pdfplumber
 from io import BytesIO
 import json
 
-load_dotenv(dotenv_path="./../config/.env")
+load_dotenv()
 
 class AIService:
     def __init__(self):
-        self.openai_client = None
-        self.setup_openai_client()
+        self.gemini_model = None
+        self.setup_gemini_client()
     
-    def setup_openai_client(self):
-        """Initialize OpenAI client"""
-        openai_key = os.getenv("OPENAI_API_KEY")
+    def setup_gemini_client(self):
+        """Initialize Gemini client"""
+        gemini_key = os.getenv("GEMINI_API_KEY")
         
-        if not openai_key:
-            raise Exception("OPENAI_API_KEY environment variable is required")
+        if not gemini_key:
+            raise Exception("GEMINI_API_KEY environment variable is required")
         
-        self.openai_client = openai.OpenAI(api_key=openai_key)
-        print("OpenAI client initialized successfully")
+        genai.configure(api_key=gemini_key)
+        self.gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+        print("Gemini client initialized successfully")
     
     async def extract_text_from_pdf(self, file_content: bytes, filename: str) -> str:
         """Extract text from PDF file content"""
@@ -71,10 +72,10 @@ class AIService:
         """
         
         try:
-            if not self.openai_client:
-                raise Exception("OpenAI client not initialized")
+            if not self.gemini_model:
+                raise Exception("Gemini client not initialized")
             
-            response = await self._call_openai(f"{prompt}\n\nCV Text:\n{cv_text}")
+            response = await self._call_gemini(f"{prompt}\n\nCV Text:\n{cv_text}")
             return self._parse_personal_data_response(response)
         except Exception as e:
             print(f"Error extracting personal data: {e}")
@@ -96,10 +97,10 @@ class AIService:
         """
         
         try:
-            if not self.openai_client:
-                raise Exception("OpenAI client not initialized")
+            if not self.gemini_model:
+                raise Exception("Gemini client not initialized")
             
-            response = await self._call_openai(f"{prompt}\n\nCV Text:\n{cv_text}")
+            response = await self._call_gemini(f"{prompt}\n\nCV Text:\n{cv_text}")
             return self._parse_qualifications_response(response)
         except Exception as e:
             print(f"Error extracting qualifications: {e}")
@@ -124,10 +125,10 @@ class AIService:
         """
         
         try:
-            if not self.openai_client:
-                raise Exception("OpenAI client not initialized")
+            if not self.gemini_model:
+                raise Exception("Gemini client not initialized")
             
-            return await self._call_openai(prompt)
+            return await self._call_gemini(prompt)
         except Exception as e:
             print(f"Error generating summary: {e}")
             return "Unable to generate summary"
@@ -151,32 +152,33 @@ class AIService:
         """
         
         try:
-            if not self.openai_client:
-                raise Exception("OpenAI client not initialized")
+            if not self.gemini_model:
+                raise Exception("Gemini client not initialized")
             
-            response = await self._call_openai(prompt)
+            response = await self._call_gemini(prompt)
             result = self._parse_evaluation_response(response)
             return result.get('vote', 0.0), result.get('consideration', 'Unable to evaluate')
         except Exception as e:
             print(f"Error evaluating candidate: {e}")
             return 0.0, f"Evaluation failed: {str(e)}"
     
-    async def _call_openai(self, prompt: str) -> str:
-        """Call OpenAI API with structured output when possible"""
+    async def _call_gemini(self, prompt: str) -> str:
+        """Call Gemini API with structured output"""
         try:
+            # Add system instructions to the prompt for better results
+            enhanced_prompt = f"""You are a helpful AI assistant that provides accurate information extraction and analysis.
+
+{prompt}
+
+Please provide accurate, structured responses. When asked for JSON format, return valid JSON only."""
+
             response = await asyncio.to_thread(
-                self.openai_client.chat.completions.create,
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful AI assistant that provides accurate information extraction and analysis."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=1500,
-                temperature=0.3
+                self.gemini_model.generate_content,
+                enhanced_prompt
             )
-            return response.choices[0].message.content
+            return response.text
         except Exception as e:
-            print(f"OpenAI API error: {e}")
+            print(f"Gemini API error: {e}")
             raise e
     
     def _parse_personal_data_response(self, response: str) -> Dict[str, Optional[str]]:
