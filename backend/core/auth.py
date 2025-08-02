@@ -5,8 +5,8 @@ from fastapi import Depends, HTTPException, status
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
-from app.models.User import User
-from app.database import get_db
+from backend.models.User import User
+from backend.database import get_db
 
 load_dotenv()
 
