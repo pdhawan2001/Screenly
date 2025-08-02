@@ -18,6 +18,10 @@ class Job(Base):
     posted_at = Column(DateTime, default=datetime.utcnow)
     created_by = Column(Integer, ForeignKey('users.id'))  # HR user ID
     company_name = Column(String)
+    
+    # Proper relationship to JobProfile for evaluation criteria
+    job_profile_id = Column(Integer, ForeignKey('job_profiles.id'), nullable=True)  # Link to evaluation criteria
 
     hr = relationship("User", back_populates="jobs")
     applications = relationship("CandidateApplication", back_populates="job")
+    job_profile = relationship("JobProfile", back_populates="jobs")

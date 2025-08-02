@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 class JobCreate(BaseModel):
@@ -12,6 +12,7 @@ class JobCreate(BaseModel):
     zip_code: str
     skills_required: List[str]  # Accept as a list in the API
     is_active: bool = True
+    job_profile_id: Optional[int] = None  # Link to evaluation criteria
 
 class JobOut(BaseModel):
     id: int
@@ -27,6 +28,7 @@ class JobOut(BaseModel):
     posted_at: datetime
     created_by: int
     company_name: str
+    job_profile_id: Optional[int] = None
 
     class Config:
         orm_mode = True

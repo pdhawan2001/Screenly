@@ -31,6 +31,7 @@ class JobProfile(Base):
     
     # Relationships
     creator = relationship("User", foreign_keys=[created_by])
+    jobs = relationship("Job", back_populates="job_profile")
     
     def __repr__(self):
         return f"<JobProfile(id={self.id}, role={self.role})>"

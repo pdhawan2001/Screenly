@@ -277,16 +277,27 @@ async def process_application_async(application_id: int, db: Session):
         # Generate candidate summary
         candidate_summary = await ai_service.generate_candidate_summary(candidate_data)
         
-        # Get job profile for this role
-        job_profile = db.query(JobProfile).filter(
-            JobProfile.role == application.job_role
-        ).first()
-        
+        # Get job profile - PROPER WAY using relationship
+        job = db.query(Job).filter(Job.id == application.job_id).first()
+        job_profile = None
         profile_requirements = ""
-        if job_profile:
-            profile_requirements = job_profile.profile_wanted
-        else:
-            # Try to get from Google Sheets if configured
+        
+        # First, try to get profile through proper Job -> JobProfile relationship
+        if job and job.job_profile_id:
+            job_profile = db.query(JobProfile).filter(JobProfile.id == job.job_profile_id).first()
+            if job_profile:
+                profile_requirements = job_profile.profile_wanted
+        
+        # Fallback: if no direct relationship, try matching by role (backwards compatibility)
+        if not job_profile:
+            job_profile = db.query(JobProfile).filter(
+                JobProfile.role == application.job_role
+            ).first()
+            if job_profile:
+                profile_requirements = job_profile.profile_wanted
+        
+        # Final fallback: Google Sheets
+        if not profile_requirements:
             sheets_url = os.getenv("JOB_PROFILES_SHEET_URL")
             if sheets_url and google_sheets_service.is_available():
                 profile_data = await google_sheets_service.get_job_profile_by_role(

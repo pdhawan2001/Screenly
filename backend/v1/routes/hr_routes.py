@@ -297,6 +297,12 @@ async def create_job(
     # Convert skills_required list to comma-separated string for storage
     skills_str = ",".join(job.skills_required) if job.skills_required else ""
     
+    # Validate job_profile_id if provided
+    if job.job_profile_id:
+        job_profile = db.query(JobProfile).filter(JobProfile.id == job.job_profile_id).first()
+        if not job_profile:
+            raise HTTPException(status_code=400, detail="Invalid job_profile_id")
+    
     new_job = Job(
         title=job.title,
         description=job.description,
@@ -309,6 +315,7 @@ async def create_job(
         is_active=job.is_active,
         created_by=current_user.id,
         company_name=current_user.company_name or "Company",
+        job_profile_id=job.job_profile_id
     )
     
     db.add(new_job)
@@ -322,6 +329,7 @@ async def create_job(
 @router.get("/jobs", response_model=List[JobOut])
 async def get_jobs(
     active_only: bool = True,
+    include_profile_info: bool = False,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -335,11 +343,67 @@ async def get_jobs(
     
     jobs = query.all()
     
-    # Convert skills to list format for output
+    # Convert skills to list format for output and optionally include profile info
     for job in jobs:
         job.skills_required = job.skills_required.split(",") if job.skills_required else []
+        
+        if include_profile_info and job.job_profile_id:
+            # Add job profile information for easier viewing
+            profile = db.query(JobProfile).filter(JobProfile.id == job.job_profile_id).first()
+            if profile:
+                # You could add this to the response, but since JobOut doesn't include it,
+                # we'll just leave it as is for now
+                pass
     
     return jobs
+
+@router.get("/jobs/with-profiles")
+async def get_jobs_with_profile_info(
+    active_only: bool = True,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all job postings with their associated profile information (HR only)"""
+    if current_user.role != "HR":
+        raise HTTPException(status_code=403, detail="Only HR users can view jobs")
+    
+    query = db.query(Job)
+    if active_only:
+        query = query.filter(Job.is_active == True)
+    
+    jobs = query.all()
+    result = []
+    
+    for job in jobs:
+        job_data = {
+            "id": job.id,
+            "title": job.title,
+            "description": job.description,
+            "city": job.city,
+            "country": job.country,
+            "skills_required": job.skills_required.split(",") if job.skills_required else [],
+            "is_active": job.is_active,
+            "posted_at": job.posted_at,
+            "company_name": job.company_name,
+            "job_profile_id": job.job_profile_id,
+            "job_profile": None
+        }
+        
+        # Include job profile details if linked
+        if job.job_profile_id:
+            profile = db.query(JobProfile).filter(JobProfile.id == job.job_profile_id).first()
+            if profile:
+                job_data["job_profile"] = {
+                    "id": profile.id,
+                    "role": profile.role,
+                    "profile_wanted": profile.profile_wanted,
+                    "required_skills": profile.required_skills,
+                    "experience_level": profile.experience_level
+                }
+        
+        result.append(job_data)
+    
+    return result
 
 @router.get("/jobs/{job_id}", response_model=JobOut)
 async def get_job(
@@ -384,6 +448,15 @@ async def update_job(
     job.zip_code = job_update.zip_code
     job.skills_required = ",".join(job_update.skills_required) if job_update.skills_required else ""
     job.is_active = job_update.is_active
+    
+    # Update job_profile_id if provided
+    if job_update.job_profile_id is not None:
+        if job_update.job_profile_id > 0:
+            # Validate the job profile exists
+            job_profile = db.query(JobProfile).filter(JobProfile.id == job_update.job_profile_id).first()
+            if not job_profile:
+                raise HTTPException(status_code=400, detail="Invalid job_profile_id")
+        job.job_profile_id = job_update.job_profile_id
     
     db.commit()
     db.refresh(job)

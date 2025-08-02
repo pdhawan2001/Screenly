@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float, Boolean
 from sqlalchemy.orm import relationship
-from app.database import Base
+from backend.database import Base
 from datetime import datetime
 
 class CandidateApplication(Base):
