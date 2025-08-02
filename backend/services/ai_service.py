@@ -8,7 +8,7 @@ import pdfplumber
 from io import BytesIO
 import json
 
-load_dotenv()
+load_dotenv(dotenv_path="./../config/.env")
 
 class AIService:
     def __init__(self):
@@ -26,7 +26,7 @@ class AIService:
         print("OpenAI client initialized successfully")
     
     async def extract_text_from_pdf(self, file_content: bytes, filename: str) -> str:
-        """Extract text from PDF file content, similar to n8n Extract from File node"""
+        """Extract text from PDF file content"""
         try:
             # Try pdfplumber first (better for complex layouts)
             with pdfplumber.open(BytesIO(file_content)) as pdf:
@@ -56,7 +56,7 @@ class AIService:
             raise Exception(f"Failed to extract text from PDF: {e}")
     
     async def extract_personal_data(self, cv_text: str) -> Dict[str, Optional[str]]:
-        """Extract personal data from CV text, similar to n8n Personal Data node"""
+        """Extract personal data from CV text"""
         prompt = """
         You are an expert extraction algorithm.
         Only extract relevant information from the text.
@@ -81,7 +81,7 @@ class AIService:
             return {"telephone": None, "city": None, "birthdate": None}
     
     async def extract_qualifications(self, cv_text: str) -> Dict[str, Optional[str]]:
-        """Extract qualifications from CV text, similar to n8n Qualifications node"""
+        """Extract qualifications from CV text"""
         prompt = """
         You are an expert extraction algorithm.
         Only extract relevant information from the text.
@@ -110,7 +110,7 @@ class AIService:
             }
     
     async def generate_candidate_summary(self, candidate_data: Dict) -> str:
-        """Generate candidate summary, similar to n8n Summarization Chain"""
+        """Generate candidate summary"""
         prompt = f"""
         Write a concise summary of the following:
         
@@ -133,7 +133,7 @@ class AIService:
             return "Unable to generate summary"
     
     async def evaluate_candidate(self, candidate_summary: str, job_profile: str) -> Tuple[float, str]:
-        """Evaluate candidate against job profile, similar to n8n HR Expert node"""
+        """Evaluate candidate against job profile"""
         prompt = f"""
         You are an HR expert and need to assess if the candidate aligns with the profile the company is looking for. 
         You must give a score from 1 to 10, where 1 means the candidate is not at all aligned with the requirements, 

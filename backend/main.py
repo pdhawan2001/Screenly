@@ -1,14 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.v1.routes.router import router
-from backend.database import Base, engine
+from v1.routes.router import router
+from database import Base, engine
 
 # Import all models to ensure they're registered with SQLAlchemy
-from backend.models.User import User
-from backend.models.Jobs import Job
-from backend.models.CandidateApplication import CandidateApplication
-from backend.models.CandidateEvaluation import CandidateEvaluation
-from backend.models.JobProfile import JobProfile
+from models.User import User
+from models.Jobs import Job
+from models.CandidateApplication import CandidateApplication
+from models.CandidateEvaluation import CandidateEvaluation
+from models.JobProfile import JobProfile
 
 Base.metadata.create_all(bind=engine)
 

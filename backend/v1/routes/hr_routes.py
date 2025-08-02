@@ -2,19 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from backend.models.User import User
-from backend.models.JobProfile import JobProfile
-from backend.models.CandidateApplication import CandidateApplication
-from backend.models.CandidateEvaluation import CandidateEvaluation
-from backend.schemas.job_profile import (
+from models.User import User
+from models.JobProfile import JobProfile
+from models.CandidateApplication import CandidateApplication
+from models.CandidateEvaluation import CandidateEvaluation
+from schemas.job_profile import (
     JobProfileCreate, JobProfileOut, JobProfileUpdate, GoogleSheetsImportRequest
 )
-from backend.schemas.job import JobCreate, JobOut
-from backend.models.Jobs import Job
-from backend.schemas.candidate_evaluation import CandidateEvaluationOut
-from backend.core.auth import get_current_user
-from backend.database import get_db
-from backend.services.google_sheets_service import google_sheets_service
+from schemas.job import JobCreate, JobOut
+from models.Jobs import Job
+from schemas.candidate_evaluation import CandidateEvaluationOut
+from core.auth import get_current_user
+from database import get_db
+from services.google_sheets_service import google_sheets_service
 from datetime import datetime
 
 router = APIRouter(prefix="/hr", tags=["hr"])

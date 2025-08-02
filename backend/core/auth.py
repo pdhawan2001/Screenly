@@ -5,10 +5,10 @@ from fastapi import Depends, HTTPException, status
 from dotenv import load_dotenv
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
-from backend.models.User import User
-from backend.database import get_db
+from models.User import User
+from database import get_db
 
-load_dotenv()
+load_dotenv(dotenv_path="backend/config/.env")
 
 SECRET_KEY=os.getenv("JWT_KEY")
 ALGORITHM=os.getenv("ALGORITHM")  

@@ -1,12 +1,12 @@
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend.models.User import User
+from models.User import User
 # Job model now handled in HR routes
-from backend.schemas.user import CreateCandidate, CreateHR, UserOut, LoginRequest
+from schemas.user import CreateCandidate, CreateHR, UserOut, LoginRequest
 # Job schemas now handled in HR routes
-from backend.core.auth import create_access_token, get_current_user
-from backend.database import get_db
+from core.auth import create_access_token, get_current_user
+from database import get_db
 from datetime import datetime, timezone
 from .candidate_routes import router as candidate_router
 from .hr_routes import router as hr_router
@@ -84,8 +84,8 @@ def register_hr(user: CreateHR, db: Session = Depends(get_db)):
         email=user.email,
         hashed_password=hashed_password,
         role="HR",
-        created_at=user.created_at,
-        email_verified=user.email_verified,
+        created_at=datetime.now(timezone.utc),
+        email_verified=False,
         company_name=user.company_name,
         position=user.position,
         street_number=user.street_number,

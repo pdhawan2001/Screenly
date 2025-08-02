@@ -6,24 +6,60 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
-from backend.models.User import User
-from backend.models.Jobs import Job
-from backend.models.CandidateApplication import CandidateApplication
-from backend.models.CandidateEvaluation import CandidateEvaluation
-from backend.models.JobProfile import JobProfile
-from backend.schemas.candidate_application import (
+from models.User import User
+from models.Jobs import Job
+from models.CandidateApplication import CandidateApplication
+from models.CandidateEvaluation import CandidateEvaluation
+from models.JobProfile import JobProfile
+from schemas.candidate_application import (
     CandidateApplicationCreate, CandidateApplicationOut, 
     CandidateApplicationList, CandidateApplicationUpdate
 )
-from backend.schemas.candidate_evaluation import (
+from schemas.candidate_evaluation import (
     CandidateEvaluationOut, CandidateEvaluationCreate, HRReviewRequest
 )
-from backend.core.auth import get_current_user
-from backend.database import get_db
-from backend.services.ai_service import ai_service
-from backend.services.google_sheets_service import google_sheets_service
+from core.auth import get_current_user
+from database import get_db
+from services.ai_service import ai_service
+from services.google_sheets_service import google_sheets_service
 
 router = APIRouter(prefix="/candidates", tags=["candidates"])
+
+@router.get("/jobs")
+async def get_available_jobs(
+    city: Optional[str] = None,
+    job_role: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get available jobs for candidates to apply to"""
+    if current_user.role != "Candidate":
+        raise HTTPException(status_code=403, detail="Only candidates can view available jobs")
+    
+    query = db.query(Job).filter(Job.is_active == True)
+    
+    if city:
+        query = query.filter(Job.city.ilike(f"%{city}%"))
+    if job_role:
+        query = query.filter(Job.title.ilike(f"%{job_role}%"))
+    
+    jobs = query.all()
+    
+    # Convert to simple format for candidates
+    job_list = []
+    for job in jobs:
+        job_list.append({
+            "id": job.id,
+            "title": job.title,
+            "description": job.description,
+            "city": job.city,
+            "country": job.country,
+            "company_name": job.company_name,
+            "posted_at": job.posted_at,
+            "skills_required": job.skills_required.split(",") if job.skills_required else []
+        })
+    
+    return job_list
 
 UPLOAD_DIR = "uploads/cvs"
 ALLOWED_EXTENSIONS = {'.pdf'}
@@ -34,14 +70,16 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/apply", response_model=CandidateApplicationOut)
 async def submit_application(
-    name: str = Form(...),
-    email: str = Form(...),
-    phone: str = Form(None),
     job_role: str = Form(...),  # Sales, Security, Operations, Reception
     cv_file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),  # Require authentication
     db: Session = Depends(get_db)
 ):
-    """Submit a candidate application with CV upload, similar to n8n form submission trigger"""
+    """Submit a candidate application with CV upload - requires candidate authentication"""
+    
+    # Only candidates can apply
+    if current_user.role != "Candidate":
+        raise HTTPException(status_code=403, detail="Only candidates can submit applications")
     
     # Validate file
     if not cv_file.filename:
@@ -75,7 +113,8 @@ async def submit_application(
     
     # Save the CV file
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    safe_filename = f"{timestamp}_{name.replace(' ', '_')}_{cv_file.filename}"
+    user_name = f"{current_user.first_name}_{current_user.last_name or ''}".replace(' ', '_')
+    safe_filename = f"{timestamp}_{user_name}_{cv_file.filename}"
     file_path = os.path.join(UPLOAD_DIR, safe_filename)
     
     try:
@@ -85,11 +124,11 @@ async def submit_application(
         # Extract text from PDF
         cv_text = await ai_service.extract_text_from_pdf(contents, cv_file.filename)
         
-        # Create the application record
+        # Create the application record using authenticated user data
         application = CandidateApplication(
-            name=name,
-            email=email,
-            phone=phone,
+            name=f"{current_user.first_name} {current_user.last_name or ''}".strip(),
+            email=current_user.email,
+            phone=current_user.phone if hasattr(current_user, 'phone') else None,
             job_id=job.id,
             job_role=job_role,
             cv_filename=cv_file.filename,
@@ -123,11 +162,19 @@ async def get_applications(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get candidate applications (HR only)"""
-    if current_user.role != "HR":
-        raise HTTPException(status_code=403, detail="Only HR users can view applications")
+    """Get candidate applications - HR sees all, Candidates see only their own"""
     
     query = db.query(CandidateApplication)
+    
+    # Role-based filtering
+    if current_user.role == "Candidate":
+        # Candidates only see their own applications
+        query = query.filter(CandidateApplication.email == current_user.email)
+    elif current_user.role == "HR":
+        # HR sees all applications
+        pass
+    else:
+        raise HTTPException(status_code=403, detail="Access denied")
     
     if status:
         query = query.filter(CandidateApplication.application_status == status)

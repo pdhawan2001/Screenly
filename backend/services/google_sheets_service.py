@@ -7,6 +7,9 @@ from googleapiclient.discovery import build
 from typing import List, Dict, Optional, Tuple
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path="backend/config/.env")
 
 class GoogleSheetsService:
     def __init__(self):
@@ -82,7 +85,7 @@ class GoogleSheetsService:
     
     async def export_candidate_evaluation(self, evaluation_data: Dict, spreadsheet_url: str, 
                                         sheet_name: str = "Sheet1") -> Optional[str]:
-        """Export candidate evaluation to Google Sheets, similar to n8n Google Sheets append"""
+        """Export candidate evaluation to Google Sheets"""
         if not self.is_available():
             raise Exception("Google Sheets service not available")
         
