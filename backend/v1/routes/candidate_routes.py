@@ -121,7 +121,6 @@ async def submit_application(
         async with aiofiles.open(file_path, 'wb') as f:
             await f.write(contents)
         
-        # Extract text from PDF
         cv_text = await ai_service.extract_text_from_pdf(contents, cv_file.filename)
         
         # Create the application record using authenticated user data
@@ -142,7 +141,6 @@ async def submit_application(
         db.commit()
         db.refresh(application)
         
-        # Process the application asynchronously (extract data and evaluate)
         await process_application_async(application.id, db)
         
         return application
@@ -166,7 +164,6 @@ async def get_applications(
     
     query = db.query(CandidateApplication)
     
-    # Role-based filtering
     if current_user.role == "Candidate":
         # Candidates only see their own applications
         query = query.filter(CandidateApplication.email == current_user.email)
@@ -184,8 +181,32 @@ async def get_applications(
     total = query.count()
     applications = query.offset((page - 1) * per_page).limit(per_page).all()
     
+    # Convert SQLAlchemy objects to Pydantic models
+    application_list = []
+    for app in applications:
+        # Convert skills from string to list if needed
+        skills_list = app.skills.split(",") if app.skills else []
+        
+        app_dict = {
+            "id": app.id,
+            "name": app.name,
+            "email": app.email,
+            "phone": app.phone,
+            "city": app.city,
+            "birthdate": app.birthdate,
+            "cv_filename": app.cv_filename,
+            "job_role": app.job_role,
+            "educational_qualification": app.educational_qualification,
+            "job_history": app.job_history,
+            "skills": app.skills,  # Keep as string for now
+            "application_status": app.application_status,
+            "submitted_at": app.submitted_at,
+            "processed_at": app.processed_at
+        }
+        application_list.append(CandidateApplicationOut(**app_dict))
+    
     return CandidateApplicationList(
-        applications=applications,
+        applications=application_list,
         total=total,
         page=page,
         per_page=per_page
@@ -208,7 +229,25 @@ async def get_application(
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
     
-    return application
+    # Convert to Pydantic model
+    app_dict = {
+        "id": application.id,
+        "name": application.name,
+        "email": application.email,
+        "phone": application.phone,
+        "city": application.city,
+        "birthdate": application.birthdate,
+        "cv_filename": application.cv_filename,
+        "job_role": application.job_role,
+        "educational_qualification": application.educational_qualification,
+        "job_history": application.job_history,
+        "skills": application.skills,
+        "application_status": application.application_status,
+        "submitted_at": application.submitted_at,
+        "processed_at": application.processed_at
+    }
+    
+    return CandidateApplicationOut(**app_dict)
 
 @router.get("/applications/{application_id}/evaluation", response_model=CandidateEvaluationOut)
 async def get_application_evaluation(
@@ -227,7 +266,25 @@ async def get_application_evaluation(
     if not evaluation:
         raise HTTPException(status_code=404, detail="Evaluation not found")
     
-    return evaluation
+    # Convert to Pydantic model
+    eval_dict = {
+        "id": evaluation.id,
+        "application_id": evaluation.application_id,
+        "candidate_summary": evaluation.candidate_summary,
+        "ai_score": evaluation.ai_score,
+        "ai_considerations": evaluation.ai_considerations,
+        "job_profile_requirements": evaluation.job_profile_requirements,
+        "alignment_analysis": evaluation.alignment_analysis,
+        "hr_reviewed": evaluation.hr_reviewed,
+        "hr_score": evaluation.hr_score,
+        "hr_notes": evaluation.hr_notes,
+        "hr_decision": evaluation.hr_decision,
+        "evaluation_status": evaluation.evaluation_status,
+        "evaluated_at": evaluation.evaluated_at,
+        "exported_to_sheets": evaluation.exported_to_sheets
+    }
+    
+    return CandidateEvaluationOut(**eval_dict)
 
 @router.post("/applications/{application_id}/review")
 async def submit_hr_review(
@@ -283,7 +340,7 @@ async def reprocess_application(
         raise HTTPException(status_code=500, detail=f"Failed to reprocess application: {str(e)}")
 
 async def process_application_async(application_id: int, db: Session):
-    """Process application with AI extraction and evaluation, similar to n8n workflow"""
+    """Process application with AI extraction and evaluation"""
     application = db.query(CandidateApplication).filter(
         CandidateApplication.id == application_id
     ).first()
@@ -296,7 +353,7 @@ async def process_application_async(application_id: int, db: Session):
         application.application_status = "processing"
         db.commit()
         
-        # Extract personal data and qualifications (parallel processing like n8n)
+        # Extract personal data and qualifications
         personal_data = await ai_service.extract_personal_data(application.cv_text_content)
         qualifications = await ai_service.extract_qualifications(application.cv_text_content)
         

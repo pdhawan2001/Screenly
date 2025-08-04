@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="backend/config/.env")
+load_dotenv(dotenv_path="config/.env")
 
 class GoogleSheetsService:
     def __init__(self):
@@ -20,7 +20,6 @@ class GoogleSheetsService:
     def setup_google_sheets_client(self):
         """Initialize Google Sheets client using service account or OAuth"""
         try:
-            # Try service account first (recommended for server applications)
             service_account_path = os.getenv("GOOGLE_SERVICE_ACCOUNT_JSON")
             if service_account_path and os.path.exists(service_account_path):
                 scope = [
@@ -53,14 +52,11 @@ class GoogleSheetsService:
             raise Exception("Google Sheets service not available")
         
         try:
-            # Extract spreadsheet ID from URL
             spreadsheet_id = self._extract_spreadsheet_id(spreadsheet_url)
             
-            # Open the spreadsheet
             spreadsheet = self.gc.open_by_key(spreadsheet_id)
             worksheet = spreadsheet.worksheet(sheet_name)
             
-            # Get all records
             records = worksheet.get_all_records()
             
             job_profiles = []
@@ -94,7 +90,6 @@ class GoogleSheetsService:
             spreadsheet = self.gc.open_by_key(spreadsheet_id)
             worksheet = spreadsheet.worksheet(sheet_name)
             
-            # Prepare row data similar to n8n workflow structure
             row_data = [
                 datetime.now().strftime('%d/%m/%Y'),  # DATA
                 evaluation_data.get('name', ''),  # NAME
@@ -110,10 +105,9 @@ class GoogleSheetsService:
                 evaluation_data.get('ai_considerations', ''),  # CONSIDERATION
             ]
             
-            # Append the row
             worksheet.append_row(row_data)
             
-            # Return the row number for tracking
+            # Return row no. for tracking
             return str(len(worksheet.get_all_records()) + 1)
             
         except Exception as e:
@@ -172,7 +166,6 @@ class GoogleSheetsService:
             # Create new spreadsheet
             spreadsheet = self.gc.create(spreadsheet_name)
             
-            # Set up headers similar to n8n workflow
             headers = [
                 "DATA", "NAME", "PHONE", "CITY", "EMAIL", "Birthdate",
                 "EDUCATIONAL", "JOB HISTORY", "SKILLS", "SUMMARIZE", 
@@ -182,7 +175,6 @@ class GoogleSheetsService:
             worksheet = spreadsheet.sheet1
             worksheet.update('A1:L1', [headers])
             
-            # Format headers
             worksheet.format('A1:L1', {
                 "backgroundColor": {"red": 0.9, "green": 0.9, "blue": 0.9},
                 "textFormat": {"bold": True}
@@ -206,5 +198,4 @@ class GoogleSheetsService:
         except Exception as e:
             return False, f"Failed to access spreadsheet: {str(e)}"
 
-# Create a singleton instance
 google_sheets_service = GoogleSheetsService()

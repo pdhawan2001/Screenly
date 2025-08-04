@@ -8,7 +8,7 @@ import pdfplumber
 from io import BytesIO
 import json
 
-load_dotenv()
+load_dotenv(dotenv_path="config/.env")
 
 class AIService:
     def __init__(self):
@@ -29,7 +29,6 @@ class AIService:
     async def extract_text_from_pdf(self, file_content: bytes, filename: str) -> str:
         """Extract text from PDF file content"""
         try:
-            # Try pdfplumber first (better for complex layouts)
             with pdfplumber.open(BytesIO(file_content)) as pdf:
                 text_parts = []
                 for page in pdf.pages:
@@ -43,7 +42,6 @@ class AIService:
             print(f"pdfplumber failed: {e}")
         
         try:
-            # Fallback to PyPDF2
             pdf_reader = PyPDF2.PdfReader(BytesIO(file_content))
             text_parts = []
             for page in pdf_reader.pages:
@@ -200,7 +198,6 @@ Please provide accurate, structured responses. When asked for JSON format, retur
         except Exception as e:
             print(f"Error parsing personal data response: {e}")
         
-        # Fallback to default values
         return {"telephone": None, "city": None, "birthdate": None}
     
     def _parse_qualifications_response(self, response: str) -> Dict[str, Optional[str]]:

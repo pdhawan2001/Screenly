@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from models.User import User
 from database import get_db
 
-load_dotenv(dotenv_path="backend/config/.env")
+load_dotenv(dotenv_path="config/.env")
 
 SECRET_KEY=os.getenv("JWT_KEY")
 ALGORITHM=os.getenv("ALGORITHM")  
