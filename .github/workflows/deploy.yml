@@ -28,7 +28,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
 
     - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+      run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
 
     # Build and Deploy Backend
     - name: Build Backend Image
@@ -48,7 +48,7 @@ jobs:
         gcloud run deploy backend \
           --image ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
           --platform managed \
-          --region==${{ env.GCP_REGION }} \
+          --region ${{ env.GCP_REGION }} \
           --allow-unauthenticated \
           --port 8000 \
           --memory 1Gi \
@@ -87,7 +87,7 @@ jobs:
         gcloud run deploy frontend \
           --image ${{ env.ARTIFACT_REGISTRY }}/frontend:${{ github.sha }} \
           --platform managed \
-          --region ${{ env.REGION }} \
+          --region ${{ env.GCP_REGION }} \
           --allow-unauthenticated \
           --port 8080 \
           --memory 512Mi \
@@ -101,6 +101,6 @@ jobs:
         echo "Backend URL: ${{ steps.backend-url.outputs.url }}"
         FRONTEND_URL=$(gcloud run services describe frontend \
           --platform managed \
-          --region ${{ env.REGION }} \
+          --region ${{ env.GCP_REGION }} \
           --format 'value(status.url)')
         echo "Frontend URL: $FRONTEND_URL"
