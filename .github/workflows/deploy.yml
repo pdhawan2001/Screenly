@@ -48,7 +48,7 @@ jobs:
         gcloud run deploy backend \
           --image ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
           --platform managed \
-          --region ${{ env.REGION }} \
+          --region ${{ env.GCP_REGION }} \
           --allow-unauthenticated \
           --port 8000 \
           --memory 1Gi \
@@ -65,7 +65,7 @@ jobs:
       run: |
         BACKEND_URL=$(gcloud run services describe backend \
           --platform managed \
-          --region ${{ env.REGION }} \
+          --region ${{ env.GCP_REGION }} \
           --format 'value(status.url)')
         echo "url=$BACKEND_URL" >> $GITHUB_OUTPUT
 
