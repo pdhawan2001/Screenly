@@ -43,6 +43,17 @@ jobs:
         docker push ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }}
         docker push ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
+    # Add echo commands here to debug before deployment
+    - name: Verify Backend Secrets and Variables
+      run: |
+        echo "Verifying backend deployment variables..."
+        echo "Project ID: ${{ env.PROJECT_ID }}"
+        echo "Region: ${{ env.REGION }}"
+        echo "Artifact Registry: ${{ env.ARTIFACT_REGISTRY }}"
+        echo "Backend Image: ${{ env.ARTIFACT_REGISTRY }}/backend:latest"
+        echo "DB_URI is set: ${{ secrets.DB_URI != '' }}"
+        # NOTE: Do not echo the actual secret value! This is for verification only.
+
     - name: Deploy Backend to Cloud Run
       run: |
         gcloud run deploy backend \
@@ -80,6 +91,14 @@ jobs:
       run: |
         docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:${{ github.sha }}
         docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+
+    # Add echo commands here to debug before frontend deployment
+    - name: Verify Frontend Secrets and Variables
+      run: |
+        echo "Verifying frontend deployment variables..."
+        echo "Frontend Image: ${{ env.ARTIFACT_REGISTRY }}/frontend:${{ github.sha }}"
+        echo "Backend URL is set: ${{ steps.backend-url.outputs.url != '' }}"
+        # The backend URL is retrieved from the previous step, so we can verify it here.
 
     - name: Deploy Frontend to Cloud Run
       run: |
