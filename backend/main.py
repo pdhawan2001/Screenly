@@ -21,7 +21,7 @@ try:
     logger.info("Database tables created successfully")
 except Exception as e:
     logger.error(f"Failed to initialize database: {e}")
-    # Don't fail the startup - let the app start and handle DB errors per request
+    # Continue startup but log the error - database operations will fail at runtime
 
 app = FastAPI(
     title="Screenly - HR Screening System",

@@ -26,8 +26,8 @@ RUN mkdir -p /app/uploads
 
 EXPOSE 8000
 
-# Create startup script
-RUN echo '#!/bin/sh\nexec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}' > /app/start.sh && \
+# Create startup script with better logging
+RUN echo '#!/bin/sh\necho "Starting application on port ${PORT:-8000}"\necho "Environment variables:"\nenv | grep -E "(PORT|DB_URI)" || echo "No relevant env vars found"\nexec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --log-level info' > /app/start.sh && \
     chmod +x /app/start.sh
 
 # Use startup script
