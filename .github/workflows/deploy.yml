@@ -48,7 +48,7 @@ jobs:
         gcloud run deploy backend \
           --image ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
           --platform managed \
-          --region ${{ env.GCP_REGION }} \
+          --region==${{ env.GCP_REGION }} \
           --allow-unauthenticated \
           --port 8000 \
           --memory 1Gi \
