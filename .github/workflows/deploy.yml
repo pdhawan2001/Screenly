@@ -51,12 +51,14 @@ jobs:
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
           --port 8000 \
-          --memory 512Mi \
-          --cpu 1 \
+          --memory 1Gi \
+          --cpu 2 \
+          --cpu-boost \
           --min-instances 0 \
           --max-instances 10 \
+          --add-cloudsql-instances ${{ secrets.CLOUDSQL_INSTANCE }} \
           --set-env-vars DB_URI=${{ secrets.DB_URI }} \
-          --timeout 300
+          --timeout 600
 
     - name: Get Backend URL
       id: backend-url
