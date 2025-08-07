@@ -50,7 +50,7 @@ jobs:
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
-          --port 8001 \
+          --port 8000 \
           --memory 1Gi \
           --cpu 2 \
           --cpu-boost \
@@ -58,7 +58,7 @@ jobs:
           --max-instances 10 \
           --add-cloudsql-instances ${{ secrets.CLOUDSQL_INSTANCE }} \
           --set-env-vars DB_URI=${{ secrets.DB_URI }} \
-          --timeout 1200
+          --timeout 2000
 
     - name: Get Backend URL
       id: backend-url
