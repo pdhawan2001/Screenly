@@ -24,10 +24,15 @@ RUN mkdir -p /cloudsql
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
-EXPOSE 8000
+# Port will be set dynamically by Cloud Run via PORT environment variable
 
-# Create startup script
-RUN echo '#!/bin/sh\nexec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}' > /app/start.sh && \
+# Create startup script with debugging
+RUN echo '#!/bin/sh\n\
+echo "Starting application..."\n\
+echo "PORT environment variable: $PORT"\n\
+FINAL_PORT=${PORT:-8000}\n\
+echo "Using port: $FINAL_PORT"\n\
+exec uvicorn main:app --host 0.0.0.0 --port $FINAL_PORT' > /app/start.sh && \
     chmod +x /app/start.sh
 
 # Use startup script
