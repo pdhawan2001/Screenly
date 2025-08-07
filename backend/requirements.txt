@@ -29,6 +29,7 @@ Pygments==2.19.2
 PyJWT==2.10.1
 python-dotenv==1.1.1
 python-multipart==0.0.20
+python-jose==3.5.0
 PyYAML==6.0.2
 rich==14.0.0
 rich-toolkit==0.14.8
@@ -43,6 +44,7 @@ typing-inspection==0.4.1
 typing_extensions==4.14.1
 urllib3==2.5.0
 uvicorn==0.35.0
+gunicorn==23.0.0
 uvloop==0.21.0
 watchfiles==1.1.0
 websockets==15.0.1
@@ -55,7 +57,7 @@ PyPDF2==3.0.1
 pdfplumber==0.11.4
 
 # AI and ML services  
-openai==1.6.1
+google-generativeai==0.8.3
 
 # Google Services integration
 google-auth==2.35.0
