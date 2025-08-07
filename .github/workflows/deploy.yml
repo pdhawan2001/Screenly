@@ -28,7 +28,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
 
     - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev
+      run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
 
     # Build and Deploy Backend
     - name: Build Backend Image
@@ -48,7 +48,7 @@ jobs:
         gcloud run deploy backend \
           --image ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
           --platform managed \
-          --region ${{ env.GCP_REGION }} \
+          --region ${{ env.REGION }} \
           --allow-unauthenticated \
           --port 8000 \
           --memory 1Gi \
