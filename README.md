@@ -203,7 +203,6 @@ REACT_APP_API_URL=http://localhost:8000/api/v1
    - Verify file is PDF format
    - Check file size limits (10MB max)
 
-
 ## 🤝 Contributing
 
 1. Fork the repository
