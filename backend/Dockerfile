@@ -18,21 +18,13 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # Copy application
 COPY . .
 
-# Ensure the cloudsql directory exists for socket connections
-RUN mkdir -p /cloudsql
-
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
-# Port will be set dynamically by Cloud Run via PORT environment variable
+EXPOSE 8000
 
-# Create startup script with debugging
-RUN echo '#!/bin/sh\n\
-echo "Starting application..."\n\
-echo "PORT environment variable: $PORT"\n\
-FINAL_PORT=${PORT:-8000}\n\
-echo "Using port: $FINAL_PORT"\n\
-exec uvicorn main:app --host 0.0.0.0 --port $FINAL_PORT' > /app/start.sh && \
+# Create startup script
+RUN echo '#!/bin/sh\nexec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}' > /app/start.sh && \
     chmod +x /app/start.sh
 
 # Use startup script

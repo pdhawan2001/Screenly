@@ -50,14 +50,13 @@ jobs:
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
+          --port 8000 \
           --memory 512Mi \
           --cpu 1 \
           --min-instances 0 \
           --max-instances 10 \
-          --add-cloudsql-instances rare-shuttle-467814-p9:us-central1:screenly \
-          --set-env-vars DB_URI=${{ secrets.DB_URI }},JWT_KEY=${{ secrets.JWT_KEY }},ALGORITHM=HS256,TOKEN_EXPIRE_MINUTES=30,GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
-          --timeout 300 \
-          --startup-cpu-boost
+          --set-env-vars DB_URI=${{ secrets.DB_URI }} \
+          --timeout 300
 
     - name: Get Backend URL
       id: backend-url
