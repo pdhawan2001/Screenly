@@ -21,7 +21,7 @@ try:
     logger.info("Database tables created successfully")
 except Exception as e:
     logger.error(f"Failed to initialize database: {e}")
-    # Continue startup but log the error - database operations will fail at runtime
+    # Don't fail the startup - let the app start and handle DB errors per request
 
 app = FastAPI(
     title="Screenly - HR Screening System",
@@ -32,9 +32,9 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for now - configure properly for production
+    allow_origins=["*"],  # Configure this properly for production
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 

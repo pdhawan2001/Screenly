@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import logging
 
-logger = logging.getLogger(__name__)
+clogger = logging.getLogger(__name__)
 
 # Try to load environment variables from multiple possible locations
 env_loaded = False
@@ -27,13 +27,8 @@ if not DATABASE_URL:
     logger.error("DB_URI environment variable is not set")
     raise ValueError("Database URL is required. Please set the DB_URI environment variable.")
 
-try:
-    engine = create_engine(DATABASE_URL)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-    logger.info("Database engine created successfully")
-except Exception as e:
-    logger.error(f"Failed to create database engine: {e}")
-    raise
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 

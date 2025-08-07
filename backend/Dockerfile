@@ -24,33 +24,11 @@ RUN mkdir -p /cloudsql
 # Create uploads directory
 RUN mkdir -p /app/uploads
 
-# Change ownership and permissions
-RUN chown -R appuser:appuser /app /cloudsql
-
 EXPOSE 8000
 
-# Create startup script with extensive debugging
-RUN echo '#!/bin/sh\n\
-echo "=== CONTAINER STARTUP DEBUG ==="\n\
-echo "Current time: $(date)"\n\
-echo "Current user: $(whoami)"\n\
-echo "Current directory: $(pwd)"\n\
-echo "Directory contents:"\n\
-ls -la\n\
-echo "Port from environment: ${PORT:-8000}"\n\
-echo "Python version: $(python --version)"\n\
-echo "Checking if main.py exists:"\n\
-ls -la main.py || echo "main.py NOT FOUND!"\n\
-echo "Checking FastAPI import:"\n\
-python -c "import fastapi; print(f\"FastAPI version: {fastapi.__version__}\")" || echo "FastAPI import failed!"\n\
-echo "Checking main app import:"\n\
-python -c "from main import app; print(\"App imported successfully\")" || echo "App import failed!"\n\
-echo "Starting uvicorn server..."\n\
-exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --log-level debug\n\
-' > /app/start.sh && chmod +x /app/start.sh
-
-# Switch to non-root user
-USER appuser
+# Create startup script
+RUN echo '#!/bin/sh\nexec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}' > /app/start.sh && \
+    chmod +x /app/start.sh
 
 # Use startup script
 CMD ["/app/start.sh"]
