@@ -57,7 +57,7 @@ jobs:
     - name: Deploy Backend to Cloud Run
       run: |
         gcloud run deploy backend \
-          --image ${{ env.ARTIFACT_REGISTRY }}/backend::${{ github.sha }} \
+          --image ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
