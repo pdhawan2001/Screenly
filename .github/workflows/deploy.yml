@@ -46,7 +46,6 @@ jobs:
     - name: Push Backend Image
       run: |
         echo "Pushing backend images..."
-        docker push ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }}
         docker push ${{ env.ARTIFACT_REGISTRY }}/backend:latest-${{ github.sha }}
         echo "Backend images pushed successfully"
 
