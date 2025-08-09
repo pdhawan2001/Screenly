@@ -36,12 +36,12 @@ jobs:
     - name: Build Backend Image
       run: |
         docker build --no-cache --platform linux/amd64 \
-          -t ${{ env.ARTIFACT_REGISTRY }}/backend@:${{ github.sha }} \
+          -t ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
           ./backend
 
     - name: Push Backend Image
       run: |
-        docker push ${{ env.ARTIFACT_REGISTRY }}/backend@sha256:${{ github.sha }}
+        docker push ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }}
 
 
     - name: Deploy Backend to Cloud Run
