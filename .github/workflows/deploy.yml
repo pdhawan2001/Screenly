@@ -33,22 +33,21 @@ jobs:
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev
 
-    # Build and Deploy Backend
     - name: Build Backend Image
       run: |
-        echo "Building backend image with no cache..."
         docker build --no-cache --platform linux/amd64 \
-          -t ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
-          -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest-${{ github.sha }} \
+          -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
           ./backend
-        echo "Backend image built successfully"
 
     - name: Push Backend Image
       run: |
-        echo "Pushing backend images..."
-        docker push ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }}
-        docker push ${{ env.ARTIFACT_REGISTRY }}/backend:latest-${{ github.sha }}
-        echo "Backend images pushed successfully"
+        docker push ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+
+    - name: Deploy Backend to Cloud Run
+      run: |
+        gcloud run deploy backend \
+          --image ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
+            echo "Backend images pushed successfully"
 
     - name: Deploy Backend to Cloud Run
       run: |
