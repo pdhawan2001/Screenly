@@ -41,22 +41,22 @@ jobs:
 
     - name: Push Backend Image
       run: |
-        docker push us-central1-docker.pkg.dev/rare-shuttle-467814-p9/screenly/backend:${{ github.sha }}
+        docker push ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }}
 
 
-    - name: Deploy Backend to Cloud Run
-      run: |
-        gcloud run deploy backend \
-          --image us-central1-docker.pkg.dev/rare-shuttle-467814-p9/screenly/backend:${{ github.sha }} \
-          --platform managed \
-          --region ${{ env.REGION }} \
-          --allow-unauthenticated \
-          --port 8000 \
-          --memory 1Gi \
-          --cpu 2 \
-          --min-instances 0 \
-          --max-instances 10 \
-          --timeout 600
+    #- name: Deploy Backend to Cloud Run
+    #  run: |
+    #    gcloud run deploy backend \
+    #      --image ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
+        #  --platform managed \
+    #      --region ${{ env.REGION }} \
+    #      --allow-unauthenticated \
+    #      --port 8000 \
+      #    --memory 1Gi \
+    #      --cpu 2 \
+    #      --min-instances 0 \
+    #      --max-instances 10 \
+     #     --timeout 600
 
     - name: Get Backend URL
       id: backend-url
@@ -80,19 +80,19 @@ jobs:
         docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:${{ github.sha }}
         docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
 
-    - name: Deploy Frontend to Cloud Run
-      run: |
-        gcloud run deploy frontend \
-          --image ${{ env.ARTIFACT_REGISTRY }}/frontend:${{ github.sha }} \
-          --platform managed \
-          --region ${{ env.REGION }} \
-          --allow-unauthenticated \
-          --port 8080 \
-          --memory 512Mi \
-          --cpu 1 \
-          --min-instances 0 \
-          --max-instances 10 \
-          --set-env-vars REACT_APP_API_URL=${{ steps.backend-url.outputs.url }}
+   # - name: Deploy Frontend to Cloud Run
+   #   run: |
+    #    gcloud run deploy frontend \
+    #      --image ${{ env.ARTIFACT_REGISTRY }}/frontend:${{ github.sha }} \
+    #      --platform managed \
+    #      --region ${{ env.REGION }} \
+    #      --allow-unauthenticated \
+    #      --port 8080 \
+    #      --memory 512Mi \
+    #      --cpu 1 \
+    #      --min-instances 0 \
+    #      --max-instances 10 \
+    #      --set-env-vars REACT_APP_API_URL=${{ steps.backend-url.outputs.url }}
 
     - name: Show Deployment URLs
       run: |
