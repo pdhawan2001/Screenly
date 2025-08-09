@@ -47,12 +47,6 @@ jobs:
       run: |
         gcloud run deploy backend \
           --image ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
-            echo "Backend images pushed successfully"
-
-    - name: Deploy Backend to Cloud Run
-      run: |
-        gcloud run deploy backend \
-          --image ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }} \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
