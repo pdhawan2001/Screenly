@@ -41,13 +41,13 @@ jobs:
 
     - name: Push Backend Image
       run: |
-        docker push ${{ env.ARTIFACT_REGISTRY }}/backend:${{ github.sha }}
+        docker push us-central1-docker.pkg.dev/rare-shuttle-467814-p9/screenly/backend:${{ github.sha }}
 
 
     - name: Deploy Backend to Cloud Run
       run: |
         gcloud run deploy backend \
-          --image ${{ env.ARTIFACT_REGISTRY }}/backend@:${{ github.sha }} \
+          --image us-central1-docker.pkg.dev/rare-shuttle-467814-p9/screenly/backend:${{ github.sha }} \
           --platform managed \
           --region ${{ env.REGION }} \
           --allow-unauthenticated \
