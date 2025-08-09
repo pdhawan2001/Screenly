@@ -36,7 +36,7 @@ jobs:
     - name: Build Backend Image
       run: |
         docker build --no-cache --platform linux/amd64 \
-          -t ${{ env.ARTIFACT_REGISTRY }}/backend@sha256:${{ github.sha }} \
+          -t ${{ env.ARTIFACT_REGISTRY }}/backend@:${{ github.sha }} \
           ./backend
 
     - name: Push Backend Image
