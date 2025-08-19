@@ -210,10 +210,6 @@ REACT_APP_API_URL=http://localhost:8000/api/v1
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 👥 Team
 
 Built with ❤️ by Parth.
